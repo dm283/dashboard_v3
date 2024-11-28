@@ -1,24 +1,33 @@
-import json, random
-from typing import List, Union
-from fastapi import APIRouter, HTTPException, status, Path, Form
-from app.database import (select_dashboard_data, )
+from fastapi import FastAPI, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import HTTPException
 from pathlib import Path
 
+import json, random
+from typing import Union
+from app.database import (select_dashboard_data, )
 
-router = APIRouter()
+# from app import views
 
+app = FastAPI()
 
-# @router.get('/', status_code=status.HTTP_200_OK)
-# async def get_dashboard_data():
-#     try:
-#         return select_dashboard_data()
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail=f'Error {e}'
-#         )
-    
-#http://127.0.0.1:8000/dashboard/?filterAccountBookDateDocFrom=2023-06-01&filterAccountBookDateDocTo=2023-08-01&filterAccountBookDateEnterFrom=2023-06-01&filterAccountBookDateEnterTo=2023-08-01&filterReportVehicleDateEnterFrom=2023-06-01&filterReportVehicleDateExitTo=2023-08-01
+origins = [
+    "*",
+    # "http://localhost",
+    # "http://127.0.0.1",
+    # "http://localhost:8000",
+    # "http://localhost:8080",
+    # "http://localhost:5173",
+    # "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 users_file = BASE_DIR / 'data/users/users_list.json'
@@ -38,7 +47,13 @@ except FileNotFoundError:
     print('THE FILE HAS NOT FOUNDED, AUTH IS NOT REQUIRED!')
 
 
-@router.post('/signin', status_code=status.HTTP_202_ACCEPTED)
+@app.get('/')
+async def index():
+    return {'message': 'fastapi server is working'}
+
+# app.include_router(views.router, prefix='/dashboard', tags=['dashboard'])
+
+@app.post('/dashboard/signin', status_code=status.HTTP_202_ACCEPTED)
 async def user_sign_in(
     login: Union[str, None] = None,
     password: Union[str, None] = None,
@@ -76,7 +91,7 @@ async def user_sign_in(
         )
     
 
-@router.post('/signout', status_code=status.HTTP_200_OK)
+@app.post('/dashboard/signout', status_code=status.HTTP_200_OK)
 async def user_sign_out(
     token: Union[str, None] = None,
 ):
@@ -95,7 +110,7 @@ async def user_sign_out(
         return {'message': 'there was not an authorization'}
 
 
-@router.get('/', status_code=status.HTTP_200_OK)
+@app.get('/dashboard/', status_code=status.HTTP_200_OK)
 async def get_dashboard_data_filtered(
         token: Union[str, None] = None,
         filterAccountBookDateDocFrom: Union[str, None] = None,

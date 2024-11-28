@@ -36,10 +36,49 @@ const login = ref('');
 const password = ref('');
 const authFormMessage = ref('')
 
-// TABS & WIDGETS
-// storageState - cardProductQuantity, cardDtQuantity, barTnvedQuantity, listProductsStorage
-// accountBook - cardRecProductQuantity, cardRecDtQuantity, barRecTnvedQuantity, listAccountBook
-// reportVehicle - listReportVehicle
+const storageStateListTableColumns = {
+    'gtdnum':'Номер ДТ','name':'Владелец','date_in':'Дата прием','g32':'№ тов.',
+    'g31':'Наименование товара','g33_in':'Код ТНВЭД','g31_3':'Кол.доп.ед', 
+    'g31_3a':'Ед.изм.', 'g35':'Вес брутто', 'date_chk':'Дата ок.хр.'
+}
+
+const accountBookListTableColumns = {
+  'gtdnum': 'Номер ДТ', 'name': 'Владелец', 'date_in': 'Дата приема','time_in': 'Время приема',
+    'date_chk': 'Дата ок.хр.','g32': '№ тов.','g31': 'Наименование товара','g33_in': 'Код ТНВЭД',
+    'g35': 'Вес брутто', 'g31_3': 'Кол.доп.ед', 'g31_3a': 'Ед.изм.', 'doc_num_out': '№ ДТ выдачи',
+    'gtdregime_out': 'Режим выдачи', 'date_out': 'Дата выдачи', 'g35_out': 'Выдача брутто',
+    'g31_3_out': 'Выд.доп.ед'
+}
+
+const reportVehicleListTableColumns = {
+  'id':'№ п/п', 'gtdnum':'Номер ДТ', 'g32':'№ тов.', 'g33_in':'Код ТНВЭД', 'g31':'Наименование товара', 'g35':'Вес брутто',
+    'g31_3':'Кол.доп.ед', 'g31_3a':'Ед.изм.', 'date_in':'Дата приема', 'place':'Скл.номер', 'date_chk':'Дата ок.хр.', 
+       'exp_date':'Срок годности', 'gtdregime_out':'Режим выдачи', 'doc_num_out':'№ ДТ выдачи', 'g33_out':'Код ТНВЭД выдачи',
+    'g35_out':'Выдача брутто', 'g31_3_out':'Выд.доп.ед', 'date_out':'Дата выдачи', 
+    'g35ost_':'Остаток брутто', 'g31_3ost_':'Остаток Доп.ед',
+}
+
+const filterAccountBookDateDocFrom = ref();
+const filterAccountBookDateDocTo = ref();
+const filterAccountBookDateEnterFrom = ref()
+const filterAccountBookDateEnterTo = ref()
+const filterReportVehicleDateEnterFrom = ref()
+const filterReportVehicleDateExitTo = ref()
+
+const showFiltersBar = ref(false);
+
+
+const authHeader = () => {
+  //
+  let user = JSON.parse(localStorage.getItem('user'));
+
+  if (user && user.access_token) {
+    return { Authorization: 'Bearer ' + user.access_token };
+  } else {
+    return {};
+  }
+}
+
 
 async function getData() {
   //
@@ -58,16 +97,17 @@ async function getData() {
 
       state.reportVehicle = {};
 
-      let query = `http://${backendIpAddress}:${backendPort}/dashboard/` + '?token=' + token.value + filterSubstring.value
+      const response = await axios.get(`http://${backendIpAddress}:${backendPort}/dashboard/?`+filterSubstring.value, { headers: authHeader() });
+
+      //let query = `http://${backendIpAddress}:${backendPort}/dashboard/` + '?token=' + token.value + filterSubstring.value
       //let query = 'http://localhost:8000/dashboard/' + '?token=' + token.value + filterSubstring.value
       // console.log('query =', query)
-      const response = await axios.get(query);
+      //const response = await axios.get(query);
       
       // console.log('API RESPONSE =', response.status)
       // if (response.status == 200) {
       //   isAuthorized.value = true;
       // };
-
 
       state.data = response.data;
 
@@ -91,9 +131,6 @@ async function getData() {
       state.accountBook.listAccountBook = state.data['account_book']
 
       state.reportVehicle.listreportVehicle = state.data['report_vehicle']
-      
-
-
     } catch (error) {
       console.error('Error fetching items', error.response.status);
       if (error.response.status == 401) {
@@ -113,7 +150,6 @@ async function updateData() {
 
 const handleSubmit = async () => {
   //
-  // console.log('handle submit!') 
   const filters = {
     'filterAccountBookDateDocFrom': filterAccountBookDateDocFrom, 
     'filterAccountBookDateDocTo': filterAccountBookDateDocTo, 
@@ -125,14 +161,11 @@ const handleSubmit = async () => {
   filterSubstring.value = '&';
   
   for (let f in filters) {
-    // console.log('filters.values =', filters[f].value)
     if (filters[f].value) {
       filterSubstring.value += f + '=' + filters[f].value + '&'
     }
   }
   
-  // console.log('filterSubstring = ', filterSubstring.value)
-
   state.isLoading = true;
   await getData();   
 };
@@ -143,63 +176,11 @@ onMounted(async () => {
 });
 
 
-const storageStateListTableColumns = {
-    'gtdnum':'Номер ДТ','name':'Владелец','date_in':'Дата прием','g32':'№ тов.',
-    'g31':'Наименование товара','g33_in':'Код ТНВЭД','g31_3':'Кол.доп.ед', 
-    'g31_3a':'Ед.изм.', 'g35':'Вес брутто', 'date_chk':'Дата ок.хр.'
-}
-
-const accountBookListTableColumns = {
-  'gtdnum': 'Номер ДТ', 'name': 'Владелец', 'date_in': 'Дата приема','time_in': 'Время приема',
-    'date_chk': 'Дата ок.хр.','g32': '№ тов.','g31': 'Наименование товара','g33_in': 'Код ТНВЭД',
-    'g35': 'Вес брутто', 'g31_3': 'Кол.доп.ед', 'g31_3a': 'Ед.изм.', 'doc_num_out': '№ ДТ выдачи',
-    'gtdregime_out': 'Режим выдачи', 'date_out': 'Дата выдачи', 'g35_out': 'Выдача брутто',
-    'g31_3_out': 'Выд.доп.ед'
-}
-
-const reportVehicleListTableColumns = {
-  'id':'№ п/п', 'gtdnum':'Номер ДТ', 'g32':'№ тов.', 'g33_in':'Код ТНВЭД', 'g31':'Наименование товара', 'g35':'Вес брутто',
-    'g31_3':'Кол.доп.ед', 'g31_3a':'Ед.изм.', 'date_in':'Дата приема', 'place':'Скл.номер', 'date_chk':'Дата ок.хр.', 
-       'exp_date':'Срок годности', 'gtdregime_out':'Режим выдачи', 'doc_num_out':'№ ДТ выдачи', 'g33_out':'Код ТНВЭД выдачи',
-    'g35_out':'Выдача брутто', 'g31_3_out':'Выд.доп.ед', 'date_out':'Дата выдачи', 
-    'g35ost_':'Остаток брутто', 'g31_3ost_':'Остаток Доп.ед',
-}
-
-
-const filterAccountBookDateDocFrom = ref();
-const filterAccountBookDateDocTo = ref();
-
-const filterAccountBookDateEnterFrom = ref()
-const filterAccountBookDateEnterTo = ref()
-
-const filterReportVehicleDateEnterFrom = ref()
-const filterReportVehicleDateExitTo = ref()
-
-const showFiltersBar = ref(false);
-const mouseOverFiltersBar = ref(false);
-
-// const formInputStyle2 = ref(
-//   (filterAccountBookDateDocFrom.value) ? 
-//   'border-b-2 border-blue-300 text-green-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer' :
-//   'border-b-2 border-blue-300 text-red-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer'
-// );
-
-// const formInputStyle11 = ref('border-b-2 border-blue-300 text-green-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer')
-//   const formInputStyle12 = ref('border-b-2 border-blue-300 text-red-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer')
-
-const testA = ref(true)
-
 const clearFilters = async () => {
   filterAccountBookDateDocFrom.value = '';
   filterAccountBookDateDocTo.value = '';
-
   filterAccountBookDateEnterFrom.value = ''
   filterAccountBookDateEnterTo.value = ''
-
   filterReportVehicleDateEnterFrom.value = ''
   filterReportVehicleDateExitTo.value = ''
 
@@ -209,25 +190,38 @@ const clearFilters = async () => {
 
 const authSubmit = async () => {
   //
+  let formData = new FormData();
+  formData.append('username', login.value);
+  formData.append('password', password.value);
+
   try {
     const response = await axios.post(
+      `http://${backendIpAddress}:${backendPort}/token`,
+      formData, {headers: {'Content-Type': 'multipart/form-data'}});
+    if (response.data.access_token) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+      isAuthorized.value = true;
+      state.isLoading = true;
+      await getData();
+    }
+
+    // const response = await axios.post(
       
-      `http://${backendIpAddress}:${backendPort}/dashboard/signin?` + 'login=' + login.value + '&password=' + password.value
-      // 'http://localhost:8000/dashboard/signin?' + 'login=' + login.value + '&password=' + password.value
-    );
-    // console.log('accepted!');
-    // console.log('response data your_new_token =', response.data.your_new_token)
-    token.value = response.data.your_new_token;
+    //   `http://${backendIpAddress}:${backendPort}/dashboard/signin?` + 'login=' + login.value + '&password=' + password.value
+    //   // 'http://localhost:8000/dashboard/signin?' + 'login=' + login.value + '&password=' + password.value
+    // );
+    // // console.log('accepted!');
+    // // console.log('response data your_new_token =', response.data.your_new_token)
+    // token.value = response.data.your_new_token;
 
     // console.log('API RESPONSE =', response.status)
-    if (response.status == 202) {
-      isAuthorized.value = true;
-    };
+    // if (response.status == 202) {
+    //   isAuthorized.value = true;
+    // };
 
-    state.isLoading = true;
-    await getData()
+    // state.isLoading = true;
+    // await getData()
   } catch (error) {
-    // console.error('unaccepted', error);
     authFormMessage.value = 'Некорректный логин или пароль.'
     isAuthorized.value = false;
   };
@@ -235,20 +229,27 @@ const authSubmit = async () => {
 
 const signOut = async () => {
   //
-  try {
-    let query = `http:///${backendIpAddress}:${backendPort}/dashboard/signout` + '?token=' + token.value
-    // let query = 'http://localhost:8000/dashboard/signout' + '?token=' + token.value
-    const response = await axios.post(query);
-    // const response = await axios.post('http://localhost:8000/dashboard/signout');
-    // console.log('sign out response =' , response.data.message)
-    if (response.data.message == 'signed out') {
-      login.value = '';
-      password.value = '';
-      isAuthorized.value = false;
-    }
-  } catch (error) {
-    console.error('unable to sign out', error);
-  }
+  localStorage.removeItem('user');
+  login.value = '';
+  password.value = '';
+  isAuthorized.value = false;
+  await getData();
+
+
+  // try {
+  //   let query = `http:///${backendIpAddress}:${backendPort}/dashboard/signout` + '?token=' + token.value
+  //   // let query = 'http://localhost:8000/dashboard/signout' + '?token=' + token.value
+  //   const response = await axios.post(query);
+  //   // const response = await axios.post('http://localhost:8000/dashboard/signout');
+  //   // console.log('sign out response =' , response.data.message)
+  //   if (response.data.message == 'signed out') {
+  //     login.value = '';
+  //     password.value = '';
+  //     isAuthorized.value = false;
+  //   }
+  // } catch (error) {
+  //   console.error('unable to sign out', error);
+  // }
 };
 
 const tabNumberVar = ref(1);  // initial tab number
@@ -257,8 +258,8 @@ const changeTabValue = (n) => {
   tabNumberVar.value = n;
 };
 
-
 </script>
+
 
 <template>
 
@@ -268,7 +269,7 @@ const changeTabValue = (n) => {
     <div class="py-2 px-5 bg-blue-400 text-center text-white text-lg">
       Дашборд | Витрина таможенного склада
     </div>
-    <form @submit.prevent="authSubmit" class="mx-5 mt-2 ">
+    <form @submit.prevent="authSubmit" enctype="multipart/form-data" class="mx-5 mt-2 ">
       <div class="my-2">
         <label class="block mb-2">Логин</label>
         <input
