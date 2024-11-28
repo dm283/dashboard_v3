@@ -41,6 +41,18 @@ const authFormMessage = ref('')
 // accountBook - cardRecProductQuantity, cardRecDtQuantity, barRecTnvedQuantity, listAccountBook
 // reportVehicle - listReportVehicle
 
+const authHeader = () => {
+  //
+  let user = JSON.parse(localStorage.getItem('user'));
+
+  if (user && user.access_token) {
+    return { Authorization: 'Bearer ' + user.access_token };
+  } else {
+    return {};
+  }
+}
+
+
 async function getData() {
   //
   try {
@@ -58,10 +70,12 @@ async function getData() {
 
       state.reportVehicle = {};
 
-      let query = `http://${backendIpAddress}:${backendPort}/dashboard/` + '?token=' + token.value + filterSubstring.value
+      const response = await axios.get(`http://${backendIpAddress}:${backendPort}/dashboard/?`+filterSubstring.value, { headers: authHeader() });
+
+      //let query = `http://${backendIpAddress}:${backendPort}/dashboard/` + '?token=' + token.value + filterSubstring.value
       //let query = 'http://localhost:8000/dashboard/' + '?token=' + token.value + filterSubstring.value
       // console.log('query =', query)
-      const response = await axios.get(query);
+      //const response = await axios.get(query);
       
       // console.log('API RESPONSE =', response.status)
       // if (response.status == 200) {
@@ -209,23 +223,37 @@ const clearFilters = async () => {
 
 const authSubmit = async () => {
   //
+  let formData = new FormData();
+  formData.append('username', login.value);
+  formData.append('password', password.value);
+
   try {
     const response = await axios.post(
+      `http://${backendIpAddress}:${backendPort}/token`,
+      formData, {headers: {'Content-Type': 'multipart/form-data'}});
+    if (response.data.access_token) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+      isAuthorized.value = true;
+      state.isLoading = true;
+      await getData();
+    }
+
+    // const response = await axios.post(
       
-      `http://${backendIpAddress}:${backendPort}/dashboard/signin?` + 'login=' + login.value + '&password=' + password.value
-      // 'http://localhost:8000/dashboard/signin?' + 'login=' + login.value + '&password=' + password.value
-    );
-    // console.log('accepted!');
-    // console.log('response data your_new_token =', response.data.your_new_token)
-    token.value = response.data.your_new_token;
+    //   `http://${backendIpAddress}:${backendPort}/dashboard/signin?` + 'login=' + login.value + '&password=' + password.value
+    //   // 'http://localhost:8000/dashboard/signin?' + 'login=' + login.value + '&password=' + password.value
+    // );
+    // // console.log('accepted!');
+    // // console.log('response data your_new_token =', response.data.your_new_token)
+    // token.value = response.data.your_new_token;
 
     // console.log('API RESPONSE =', response.status)
-    if (response.status == 202) {
-      isAuthorized.value = true;
-    };
+    // if (response.status == 202) {
+    //   isAuthorized.value = true;
+    // };
 
-    state.isLoading = true;
-    await getData()
+    // state.isLoading = true;
+    // await getData()
   } catch (error) {
     // console.error('unaccepted', error);
     authFormMessage.value = 'Некорректный логин или пароль.'
@@ -235,20 +263,25 @@ const authSubmit = async () => {
 
 const signOut = async () => {
   //
-  try {
-    let query = `http:///${backendIpAddress}:${backendPort}/dashboard/signout` + '?token=' + token.value
-    // let query = 'http://localhost:8000/dashboard/signout' + '?token=' + token.value
-    const response = await axios.post(query);
-    // const response = await axios.post('http://localhost:8000/dashboard/signout');
-    // console.log('sign out response =' , response.data.message)
-    if (response.data.message == 'signed out') {
-      login.value = '';
-      password.value = '';
-      isAuthorized.value = false;
-    }
-  } catch (error) {
-    console.error('unable to sign out', error);
-  }
+  localStorage.removeItem('user');
+  await getData();
+  // console.log('data after =', state.loadedData)
+
+
+  // try {
+  //   let query = `http:///${backendIpAddress}:${backendPort}/dashboard/signout` + '?token=' + token.value
+  //   // let query = 'http://localhost:8000/dashboard/signout' + '?token=' + token.value
+  //   const response = await axios.post(query);
+  //   // const response = await axios.post('http://localhost:8000/dashboard/signout');
+  //   // console.log('sign out response =' , response.data.message)
+  //   if (response.data.message == 'signed out') {
+  //     login.value = '';
+  //     password.value = '';
+  //     isAuthorized.value = false;
+  //   }
+  // } catch (error) {
+  //   console.error('unable to sign out', error);
+  // }
 };
 
 const tabNumberVar = ref(1);  // initial tab number
@@ -268,7 +301,7 @@ const changeTabValue = (n) => {
     <div class="py-2 px-5 bg-blue-400 text-center text-white text-lg">
       Дашборд | Витрина таможенного склада
     </div>
-    <form @submit.prevent="authSubmit" class="mx-5 mt-2 ">
+    <form @submit.prevent="authSubmit" enctype="multipart/form-data" class="mx-5 mt-2 ">
       <div class="my-2">
         <label class="block mb-2">Логин</label>
         <input
