@@ -499,7 +499,7 @@ const exportFile = (dataSet, fileName, fileType) => {
     
     
     <div class="h-4/5 m-7 text-sm overflow-auto">
-      <table>
+      <table class="w-full">
         <tr class="" v-for="field in Object.keys(props.listTableColumns)">
           <td class="w-60 py-1 border-b font-semibold">
             {{ props.listTableColumns[field] }}
