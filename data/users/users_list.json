@@ -1,15 +1,11 @@
 {
     "user1": {
         "username": "user1",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
         "hashed_password": "q1w2e3",
         "disabled": false
     },
     "user2": {
         "username": "user2",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
         "hashed_password": "a1s2d3",
         "disabled": false
     }

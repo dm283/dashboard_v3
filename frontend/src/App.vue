@@ -36,10 +36,37 @@ const login = ref('');
 const password = ref('');
 const authFormMessage = ref('')
 
-// TABS & WIDGETS
-// storageState - cardProductQuantity, cardDtQuantity, barTnvedQuantity, listProductsStorage
-// accountBook - cardRecProductQuantity, cardRecDtQuantity, barRecTnvedQuantity, listAccountBook
-// reportVehicle - listReportVehicle
+const storageStateListTableColumns = {
+    'gtdnum':'Номер ДТ','name':'Владелец','date_in':'Дата прием','g32':'№ тов.',
+    'g31':'Наименование товара','g33_in':'Код ТНВЭД','g31_3':'Кол.доп.ед', 
+    'g31_3a':'Ед.изм.', 'g35':'Вес брутто', 'date_chk':'Дата ок.хр.'
+}
+
+const accountBookListTableColumns = {
+  'gtdnum': 'Номер ДТ', 'name': 'Владелец', 'date_in': 'Дата приема','time_in': 'Время приема',
+    'date_chk': 'Дата ок.хр.','g32': '№ тов.','g31': 'Наименование товара','g33_in': 'Код ТНВЭД',
+    'g35': 'Вес брутто', 'g31_3': 'Кол.доп.ед', 'g31_3a': 'Ед.изм.', 'doc_num_out': '№ ДТ выдачи',
+    'gtdregime_out': 'Режим выдачи', 'date_out': 'Дата выдачи', 'g35_out': 'Выдача брутто',
+    'g31_3_out': 'Выд.доп.ед'
+}
+
+const reportVehicleListTableColumns = {
+  'id':'№ п/п', 'gtdnum':'Номер ДТ', 'g32':'№ тов.', 'g33_in':'Код ТНВЭД', 'g31':'Наименование товара', 'g35':'Вес брутто',
+    'g31_3':'Кол.доп.ед', 'g31_3a':'Ед.изм.', 'date_in':'Дата приема', 'place':'Скл.номер', 'date_chk':'Дата ок.хр.', 
+       'exp_date':'Срок годности', 'gtdregime_out':'Режим выдачи', 'doc_num_out':'№ ДТ выдачи', 'g33_out':'Код ТНВЭД выдачи',
+    'g35_out':'Выдача брутто', 'g31_3_out':'Выд.доп.ед', 'date_out':'Дата выдачи', 
+    'g35ost_':'Остаток брутто', 'g31_3ost_':'Остаток Доп.ед',
+}
+
+const filterAccountBookDateDocFrom = ref();
+const filterAccountBookDateDocTo = ref();
+const filterAccountBookDateEnterFrom = ref()
+const filterAccountBookDateEnterTo = ref()
+const filterReportVehicleDateEnterFrom = ref()
+const filterReportVehicleDateExitTo = ref()
+
+const showFiltersBar = ref(false);
+
 
 const authHeader = () => {
   //
@@ -82,7 +109,6 @@ async function getData() {
       //   isAuthorized.value = true;
       // };
 
-
       state.data = response.data;
 
       state.companyName = state.data['company_name']
@@ -105,9 +131,6 @@ async function getData() {
       state.accountBook.listAccountBook = state.data['account_book']
 
       state.reportVehicle.listreportVehicle = state.data['report_vehicle']
-      
-
-
     } catch (error) {
       console.error('Error fetching items', error.response.status);
       if (error.response.status == 401) {
@@ -127,7 +150,6 @@ async function updateData() {
 
 const handleSubmit = async () => {
   //
-  // console.log('handle submit!') 
   const filters = {
     'filterAccountBookDateDocFrom': filterAccountBookDateDocFrom, 
     'filterAccountBookDateDocTo': filterAccountBookDateDocTo, 
@@ -139,14 +161,11 @@ const handleSubmit = async () => {
   filterSubstring.value = '&';
   
   for (let f in filters) {
-    // console.log('filters.values =', filters[f].value)
     if (filters[f].value) {
       filterSubstring.value += f + '=' + filters[f].value + '&'
     }
   }
   
-  // console.log('filterSubstring = ', filterSubstring.value)
-
   state.isLoading = true;
   await getData();   
 };
@@ -157,63 +176,11 @@ onMounted(async () => {
 });
 
 
-const storageStateListTableColumns = {
-    'gtdnum':'Номер ДТ','name':'Владелец','date_in':'Дата прием','g32':'№ тов.',
-    'g31':'Наименование товара','g33_in':'Код ТНВЭД','g31_3':'Кол.доп.ед', 
-    'g31_3a':'Ед.изм.', 'g35':'Вес брутто', 'date_chk':'Дата ок.хр.'
-}
-
-const accountBookListTableColumns = {
-  'gtdnum': 'Номер ДТ', 'name': 'Владелец', 'date_in': 'Дата приема','time_in': 'Время приема',
-    'date_chk': 'Дата ок.хр.','g32': '№ тов.','g31': 'Наименование товара','g33_in': 'Код ТНВЭД',
-    'g35': 'Вес брутто', 'g31_3': 'Кол.доп.ед', 'g31_3a': 'Ед.изм.', 'doc_num_out': '№ ДТ выдачи',
-    'gtdregime_out': 'Режим выдачи', 'date_out': 'Дата выдачи', 'g35_out': 'Выдача брутто',
-    'g31_3_out': 'Выд.доп.ед'
-}
-
-const reportVehicleListTableColumns = {
-  'id':'№ п/п', 'gtdnum':'Номер ДТ', 'g32':'№ тов.', 'g33_in':'Код ТНВЭД', 'g31':'Наименование товара', 'g35':'Вес брутто',
-    'g31_3':'Кол.доп.ед', 'g31_3a':'Ед.изм.', 'date_in':'Дата приема', 'place':'Скл.номер', 'date_chk':'Дата ок.хр.', 
-       'exp_date':'Срок годности', 'gtdregime_out':'Режим выдачи', 'doc_num_out':'№ ДТ выдачи', 'g33_out':'Код ТНВЭД выдачи',
-    'g35_out':'Выдача брутто', 'g31_3_out':'Выд.доп.ед', 'date_out':'Дата выдачи', 
-    'g35ost_':'Остаток брутто', 'g31_3ost_':'Остаток Доп.ед',
-}
-
-
-const filterAccountBookDateDocFrom = ref();
-const filterAccountBookDateDocTo = ref();
-
-const filterAccountBookDateEnterFrom = ref()
-const filterAccountBookDateEnterTo = ref()
-
-const filterReportVehicleDateEnterFrom = ref()
-const filterReportVehicleDateExitTo = ref()
-
-const showFiltersBar = ref(false);
-const mouseOverFiltersBar = ref(false);
-
-// const formInputStyle2 = ref(
-//   (filterAccountBookDateDocFrom.value) ? 
-//   'border-b-2 border-blue-300 text-green-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer' :
-//   'border-b-2 border-blue-300 text-red-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer'
-// );
-
-// const formInputStyle11 = ref('border-b-2 border-blue-300 text-green-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer')
-//   const formInputStyle12 = ref('border-b-2 border-blue-300 text-red-300 text-base font-medium w-36 py-1 px-1 mb-2 \
-//   hover:border-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer')
-
-const testA = ref(true)
-
 const clearFilters = async () => {
   filterAccountBookDateDocFrom.value = '';
   filterAccountBookDateDocTo.value = '';
-
   filterAccountBookDateEnterFrom.value = ''
   filterAccountBookDateEnterTo.value = ''
-
   filterReportVehicleDateEnterFrom.value = ''
   filterReportVehicleDateExitTo.value = ''
 
@@ -255,7 +222,6 @@ const authSubmit = async () => {
     // state.isLoading = true;
     // await getData()
   } catch (error) {
-    // console.error('unaccepted', error);
     authFormMessage.value = 'Некорректный логин или пароль.'
     isAuthorized.value = false;
   };
@@ -264,8 +230,10 @@ const authSubmit = async () => {
 const signOut = async () => {
   //
   localStorage.removeItem('user');
+  login.value = '';
+  password.value = '';
+  isAuthorized.value = false;
   await getData();
-  // console.log('data after =', state.loadedData)
 
 
   // try {
@@ -290,8 +258,8 @@ const changeTabValue = (n) => {
   tabNumberVar.value = n;
 };
 
-
 </script>
+
 
 <template>
 

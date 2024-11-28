@@ -1,24 +1,18 @@
-from fastapi import FastAPI, status
+import sys, json
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Union
+from pathlib import Path
+from fastapi import FastAPI, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
-from pathlib import Path
-
-import json, random
-from typing import Union
-from app.database import (select_dashboard_data, )
-
-from datetime import datetime, timedelta, timezone
-from typing import Annotated
-
-import jwt
-from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import jwt
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from app.database import (select_dashboard_data, )
 
-# from app import views
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -28,41 +22,30 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 users_file = BASE_DIR / 'data/users/users_list.json'
-# TOKEN_LIST = list()
 
 try:
     #  при отсутствии файла с пользователями вход без страницы аутентификации
     with open(users_file, 'r') as jsonfile:
         USERS_LIST = json.load(jsonfile)  # type = dict
-    IS_AUTH_REQUIRED = True
+    # IS_AUTH_REQUIRED = True
     # IS_AUTHORIZED = False
-    print('THE FILE HAS FOUNDED, AUTH IS REQUIRED!', USERS_LIST)
+    # print('THE FILE HAS FOUNDED, AUTH IS REQUIRED!', USERS_LIST)
 except FileNotFoundError:
-    IS_AUTH_REQUIRED = False
+    # IS_AUTH_REQUIRED = False
     # IS_AUTHORIZED = True
-    print('THE FILE HAS NOT FOUNDED, AUTH IS NOT REQUIRED!')
+    # print('THE FILE HAS NOT FOUNDED, AUTH IS NOT REQUIRED!')
+    print('Users file is not founded! Exit script.')
+    sys.exit()
 
 
 fake_users_db = USERS_LIST
-# fake_users_db = {
-#     "johndoe": {
-#         "username": "johndoe",
-#         "full_name": "John Doe",
-#         "email": "johndoe@example.com",
-#         "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-#         "disabled": False,
-#     }
-# }
-
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class TokenData(BaseModel):
     username: str | None = None
-
 
 class User(BaseModel):
     username: str
@@ -70,13 +53,10 @@ class User(BaseModel):
     full_name: str | None = None
     disabled: bool | None = None
 
-
 class UserInDB(User):
     hashed_password: str
 
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
@@ -98,16 +78,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-
-
-@app.get('/')
-async def index():
-    return {'message': 'fastapi server is working'}
-
-# app.include_router(views.router, prefix='/dashboard', tags=['dashboard'])
-
 
 
 def verify_password(plain_password, hashed_password):
@@ -174,6 +144,11 @@ async def get_current_active_user(
     return current_user
 
 
+@app.get('/')
+async def index():
+    return {'message': 'fastapi server is working'}
+
+
 @app.post("/token")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -190,7 +165,6 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
-
 
 
 @app.get("/users/me/", response_model=User)
