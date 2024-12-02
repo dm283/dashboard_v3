@@ -10,6 +10,7 @@ import Navbar from './components/Navbar.vue';
 import Dashboard from './components/Dashboard.vue';
 import BarChart from '@/components/BarChart.vue';
 import BarHorizont from '@/components/BarHorizont.vue';
+import logo from '@/assets/alta-logo-full.jpg';
 
 
 // import from config.ini file in backend folder
@@ -485,6 +486,14 @@ const changeTabValue = (n) => {
     :reportVehicleListAccountBook="state.reportVehicle.listreportVehicle" 
     :reportVehicleListTableColumns="reportVehicleListTableColumns"
   /> 
+
+  <footer>
+    <div class="bg-slate-200 flex box-content border h-7 pl-5 pr-10 text-left text-slate-500 text-sm font-semibold">
+      <div class="flex-1"><img class="h-7" :src="logo"></div>
+      <div class="py-1">&#169; "Альта-Софт" Лиц.: 00008</div>
+      
+    </div>
+  </footer>
 
   </div>
 </div>
