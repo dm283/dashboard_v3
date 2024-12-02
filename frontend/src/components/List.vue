@@ -517,8 +517,10 @@ const exportFile = (dataSet, fileName, fileType) => {
 </div>
 
 
-<div @click="checkState()" class="listArea max-w-max m-0 px-3 py-2 border border-gray-200 rounded-lg
+<div @click="checkState()" class="listArea m-0 px-3 py-2 border border-gray-200 rounded-lg
   bg-white drop-shadow-md hover:drop-shadow-lg ">
+<!-- <div @click="checkState()" class="listArea max-w-max m-0 px-3 py-2 border border-gray-200 rounded-lg
+  bg-white drop-shadow-md hover:drop-shadow-lg "> -->
 
 <!-- {{ props.listTableColumns }} -->
 
