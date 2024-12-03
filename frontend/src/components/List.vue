@@ -480,7 +480,7 @@ const exportFile = (dataSet, fileName, fileType) => {
 
 <template>
 
-<div class="" v-if="props.data[0]"> <!-- necessary div for waiting data from root component!!! -->
+<div class="" v-if="props.name"> <!-- necessary div for waiting data from root component!!! -->
 
 <!-- **********************   MODAL ITEM DETAILS   ************************** -->
 <div v-if="showItemCard" class="absolute z-10 top-0 left-0 w-screen h-screen bg-black bg-opacity-50
