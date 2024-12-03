@@ -540,7 +540,7 @@ const exportFile = (dataSet, fileName, fileType) => {
     <div class="paginationBtn" @click="computeRenderData('left')">
       <i class="pi pi-angle-left" style="font-size: 1rem"></i>
     </div>
-    {{ state.limitRecords*(state.currentPage-1)+1 }}-{{ 
+    {{ (dataLengthRender()) ? state.limitRecords*(state.currentPage-1)+1 : 0 }}-{{ 
       (state.limitRecords*state.currentPage < dataLengthRender()) 
       ? state.limitRecords*state.currentPage : dataLengthRender() }} of {{ dataLengthRender() }}
     <div class="paginationBtn" @click="computeRenderData('right')">
@@ -703,27 +703,6 @@ const exportFile = (dataSet, fileName, fileType) => {
   </tbody>
 </table>
 </section>
-
-<!-- ***************   PAGINATION BLOCK   ********************* -->
-<!-- <div id="paginationBlock" class="absolute bottom-2 right-3 overflow-auto pt-3 pb-2">
-<div class="float-right space-x-1.5">
-  <div class="paginationBtn" @click="computeRenderData('first')">
-    <i class="pi pi-angle-double-left" style="font-size: 1rem"></i>
-  </div>
-  <div class="paginationBtn" @click="computeRenderData('left')">
-    <i class="pi pi-angle-left" style="font-size: 1rem"></i>
-  </div>
-  {{ state.limitRecords*(state.currentPage-1)+1 }}-{{ 
-    (state.limitRecords*state.currentPage < dataLengthRender()) 
-    ? state.limitRecords*state.currentPage : dataLengthRender() }} of {{ dataLengthRender() }}
-  <div class="paginationBtn" @click="computeRenderData('right')">
-    <i class="pi pi-angle-right" style="font-size: 1rem"></i>
-  </div>
-  <div class="paginationBtn" @click="computeRenderData('last')">
-    <i class="pi pi-angle-double-right" style="font-size: 1rem"></i>
-  </div>
-</div>
-</div> -->
 
 </div>
 </div>
