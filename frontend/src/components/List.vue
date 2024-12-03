@@ -542,7 +542,7 @@ const exportFile = (dataSet, fileName, fileType) => {
     </div>
     {{ (dataLengthRender()) ? state.limitRecords*(state.currentPage-1)+1 : 0 }}-{{ 
       (state.limitRecords*state.currentPage < dataLengthRender()) 
-      ? state.limitRecords*state.currentPage : dataLengthRender() }} of {{ dataLengthRender() }}
+      ? state.limitRecords*state.currentPage : dataLengthRender() }} из {{ dataLengthRender() }}
     <div class="paginationBtn" @click="computeRenderData('right')">
       <i class="pi pi-angle-right" style="font-size: 1rem"></i>
     </div>
