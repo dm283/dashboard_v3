@@ -10,7 +10,7 @@ npm install
 === start/restart dashboard app ===
 1)  backend
 cd ....../backend
-venv\Script\activate
+venv\Scripts\activate
 uvicorn app.main:app --workers 1 --host 0.0.0.0 --port 8000
 
 2)  frontend
